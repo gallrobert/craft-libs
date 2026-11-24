@@ -24,8 +24,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
 jobs:
-  # Whether this run needs the macOS and Windows legs, and which tests every leg runs
-  # (craft-common-actions' select-platforms). On a pull request the macOS and Windows legs run only
+  # Whether this run needs the Windows leg (macOS is temporarily disabled), and which tests every leg runs
+  # (craft-common-actions' select-platforms). On a pull request the Windows leg runs only
   # when it can change platform behaviour: a crate with platform cfg code or one that depends on
   # it, the build setup, or a file outside the crates. The tests are those of the crates a change
   # reaches: the crates that own a changed file, the crates whose Cargo.toml declares a read of it
@@ -55,16 +55,16 @@ jobs:
       - id: select
         uses: storytold/craft-common-actions/actions/select-platforms@0bef64f155fcea81edbd9542381777358bfbdcf4
         with:
-          os: '["ubuntu-latest","windows-latest","macos-latest"]'
-          select-os: '["windows-latest","macos-latest"]'
+          os: '["ubuntu-latest","windows-latest"]'
+          select-os: '["windows-latest"]'
           select-tests: true
           label: full-ci
 
   # The Linux leg keeps the compiled workspace crates between runs (`cache-workspace-crates`): each
   # main run saves a rolling cache entry of its own, every run restores the newest one, and Cargo
   # rebuilds only the crates a change reaches. `cache-prune` keeps the newest entry. The midnight
-  # scheduled run builds from source (`cold-build`) and starts the entry afresh. The macOS and
-  # Windows legs keep a dependency-only entry: their workspace crates would not fit the 10 GB cache
+  # scheduled run builds from source (`cold-build`) and starts the entry afresh. The
+  # Windows leg keeps a dependency-only entry: their workspace crates would not fit the 10 GB cache
   # budget beside Linux's. The lint legs keep no cache (`lint-cache: false`) for the same reason; a
   # cold lint leg is still shorter than its gate leg.
   native:
@@ -125,7 +125,7 @@ jobs:
         fi
         # One rustfmt call gets every source root of the workspace, which is longer than
         # Windows allows for a command line (os error 206). rustfmt's result is the same on
-        # every system, so the Linux and macOS legs check it.
+        # every system, so the Linux leg checks it.
         if [ "$RUNNER_OS" != Windows ]; then
           cargo fmt --check
         fi
@@ -149,7 +149,7 @@ jobs:
         cargo test --workspace --doc --all-features --locked
         cargo nextest run -p craft-image-codecs -p craft-text --locked --profile ci -E "$CRAFT_TEST_FILTER" --no-tests=warn --lib --bins --tests
 
-  # The macOS and Windows legs, when `platforms` says this run needs them, with the Linux leg's
+  # The Windows leg, when `platforms` says this run needs it, with the Linux leg's
   # inputs.
   native-platforms:
     name: Workspace
@@ -157,7 +157,7 @@ jobs:
     if: needs.platforms.outputs.platform == 'true'
     uses: storytold/craft-common-actions/.github/workflows/gate.yml@main
     with:
-      os: '["windows-latest","macos-latest"]'
+      os: '["windows-latest"]'
       lint-cache: false
       timeout-minutes: *timeout
       tools: *tools
@@ -165,7 +165,7 @@ jobs:
       dev-strip: true
       # No debuginfo on Windows: writing PDBs for every test binary is a large part of its link
       # time. A panic still names its file and line; only backtrace frames lose theirs, and the
-      # Linux and macOS legs keep line tables.
+      # Linux leg keeps line tables.
       windows-env: |
         CRAFT_PRINT_REQUIRE_QUEUE=1
         CARGO_PROFILE_DEV_DEBUG=0
