@@ -2,6 +2,9 @@ use craft_psd::PsdError;
 use craft_psd::csh;
 use craft_psd::path::{PathData, PsdKnot, PsdSubpath};
 
+#[path = "common/csh_fixture.rs"]
+mod csh_fixture;
+
 fn fixture(names: &[&str]) -> Vec<u8> {
     let mut bytes = b"cush".to_vec();
     bytes.extend_from_slice(&2u32.to_be_bytes());
@@ -98,4 +101,17 @@ fn rejects_missing_knots_and_mismatched_open_closed_records() {
     let mut mismatched = bytes;
     mismatched[length_record..length_record + 2].copy_from_slice(&0u16.to_be_bytes());
     assert!(csh::parse(&mismatched).is_err());
+}
+
+#[test]
+fn reads_closed_polygon_fixture() {
+    let shapes = csh::parse(&csh_fixture::triangle_csh()).unwrap();
+    assert_eq!(shapes.len(), 1);
+    assert_eq!(shapes[0].name, "Triangle");
+    assert_eq!(shapes[0].bounds, [0, 0, 100, 200]);
+    let subpaths = shapes[0].path.subpaths();
+    assert_eq!(subpaths.len(), 1);
+    assert!(subpaths[0].closed);
+    assert_eq!(subpaths[0].knots.len(), 3);
+    assert_eq!(subpaths[0].knots[0].anchor, (0.25, 0.25));
 }
