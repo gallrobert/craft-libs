@@ -1,0 +1,19 @@
+name: Diagnose unreached Rust source files
+on:
+  push:
+    branches: [fix/diagnose-unreached-rust]
+    paths: [.github/workflows/diagnose-unreached-rust.yml]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check exact original push diff
+        run: |
+          curl --fail --silent --show-error --location https://raw.githubusercontent.com/storytold/craft-common-actions/8830c54c077af2c6bf20833eb46252d775f7b35e/actions/unreached-rs/unreached_rs.py -o "$RUNNER_TEMP/unreached_rs.py"
+          python3 "$RUNNER_TEMP/unreached_rs.py" --directory . --mode diff --base ae2f796b673f29cf3161f36eb6a8933f0a3fe028 --allow $'**/fixtures/**\nvendor/hayro*/**\nvendor/krilla/**\nvendor/linesweeper/**\nvendor/vello_*/**' | sed 's/^::error file=/Unreached file: /'
