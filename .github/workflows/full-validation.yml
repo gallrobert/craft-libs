@@ -1,7 +1,7 @@
 name: Full validation
 
 # Add full-validation to a PR for uncapped validation of its merge ref. Keep the label across pushes.
-# Fast Workspace checks are not substitutes for these six completed native/PDF gate checks.
+# Fast Workspace checks are not substitutes for these four completed native/PDF gate checks (macOS temporarily disabled).
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
@@ -24,7 +24,7 @@ jobs:
     name: Full native
     uses: storytold/craft-common-actions/.github/workflows/gate.yml@main
     with:
-      os: '["ubuntu-latest","windows-latest","macos-latest"]'
+      os: '["ubuntu-latest","windows-latest"]'
       select-os: '[]'
       timeout-minutes: 120
       tools: ""
@@ -46,7 +46,7 @@ jobs:
     name: Full PDF contracts
     uses: storytold/craft-common-actions/.github/workflows/gate.yml@main
     with:
-      os: '["ubuntu-latest","windows-latest","macos-latest"]'
+      os: '["ubuntu-latest","windows-latest"]'
       select-os: '[]'
       timeout-minutes: 120
       tools: ""

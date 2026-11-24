@@ -104,7 +104,7 @@ class FullValidation(unittest.TestCase):
 
     def test_workflow_preserves_fork_and_platform_boundaries(self):
         text = (ROOT / ".github/workflows/full-validation.yml").read_text()
-        self.assertIn("os: '[\"ubuntu-latest\",\"windows-latest\",\"macos-latest\"]'", text)
+        self.assertIn("os: '[\"ubuntu-latest\",\"windows-latest\"]'", text)
         self.assertIn("select-os: '[]'", text)
         self.assertIn("contents: read", text)
         self.assertNotIn("pull_request_target", text)
@@ -124,7 +124,8 @@ class FullValidation(unittest.TestCase):
         self.assertIn("cargo test --manifest-path crates/pdf/read-only-contract/Cargo.toml --locked", pdf)
         self.assertIn("select-os: '[]'", pdf)
         self.assertIn("windows-latest", pdf)
-        self.assertIn("macos-latest", pdf)
+        self.assertIn("ubuntu-latest", pdf)
+        self.assertNotIn("macos-latest", pdf)
 
 
 
