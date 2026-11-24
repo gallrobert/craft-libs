@@ -200,7 +200,7 @@ class WorkspaceTests(unittest.TestCase):
         source = WORKFLOW.read_text()
         self.assertIn("uses: storytold/craft-common-actions/.github/workflows/gate.yml@main", source)
         self.assertIn('os: \'["ubuntu-latest"]\'', source)
-        self.assertIn('os: \'["windows-latest","macos-latest"]\'', source)
+        self.assertIn('os: \'["windows-latest"]\'', source)
         self.assertIn("if: needs.platforms.outputs.platform == 'true'", source)
         # Every leg reads the test selection of the platforms job.
         self.assertIn("  native:\n    name: Workspace\n    needs: platforms\n", source)
